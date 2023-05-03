@@ -1,5 +1,5 @@
 # Build go
-FROM golang:1.20-alpine AS builder
+FROM golang:1.19-alpine AS builder
 WORKDIR /app
 COPY . .
 ENV CGO_ENABLED=0
@@ -10,7 +10,7 @@ RUN go build -v -o XrayR -trimpath -ldflags "-s -w -buildid=" ./main
 FROM  alpine
 # 安装必要的工具包
 RUN  apk --update --no-cache add tzdata ca-certificates \
-    && cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+    && cp /usr/share/zoneinfo/Asia/Ho_Chi_Minh /etc/localtime
 RUN mkdir /etc/XrayR/
 COPY --from=builder /app/XrayR /usr/local/bin
 
