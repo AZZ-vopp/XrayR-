@@ -298,6 +298,16 @@ func (c *APIClient) ReportNodeStatus(nodeStatus *api.NodeStatus) (err error) {
 
 // ReportNodeOnlineUsers reports online user ip
 func (c *APIClient) ReportNodeOnlineUsers(onlineUserList *[]api.OnlineUser) error {
+	var path string
+	switch c.NodeType {
+	case "V2ray":
+		path = "/api/v1/server/Deepbwork/online"
+	case "Trojan":
+		path = "/api/v1/server/TrojanTidalab/online"
+	case "Shadowsocks":
+		path = "/api/v1/server/ShadowsocksTidalab/online"
+	}
+	
 	c.access.Lock()
 	defer c.access.Unlock()
 
@@ -314,7 +324,6 @@ func (c *APIClient) ReportNodeOnlineUsers(onlineUserList *[]api.OnlineUser) erro
 	c.LastReportOnline = reportOnline // Update LastReportOnline
 
 	postData := &PostData{Data: data}
-	path := fmt.Sprintf("/mod_mu/users/aliveip")
 	res, err := c.client.R().
 		SetQueryParam("node_id", strconv.Itoa(c.NodeID)).
 		SetBody(postData).
