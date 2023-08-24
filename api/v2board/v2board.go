@@ -27,7 +27,6 @@ type APIClient struct {
 	Key           string
 	NodeType      string
 	EnableVless   bool
-	VlessFlow     string
 	SpeedLimit    float64
 	DeviceLimit   int
 	LocalRuleList []api.DetectRule
@@ -67,7 +66,6 @@ func New(apiConfig *api.Config) *APIClient {
 		APIHost:       apiConfig.APIHost,
 		NodeType:      apiConfig.NodeType,
 		EnableVless:   apiConfig.EnableVless,
-		VlessFlow:     apiConfig.VlessFlow,
 		SpeedLimit:    apiConfig.SpeedLimit,
 		DeviceLimit:   apiConfig.DeviceLimit,
 		LocalRuleList: localRuleList,
@@ -296,46 +294,8 @@ func (c *APIClient) ReportNodeStatus(nodeStatus *api.NodeStatus) (err error) {
 	return nil
 }
 
-// ReportNodeOnlineUsers reports online user ip
+// ReportNodeOnlineUsers implements the API interface
 func (c *APIClient) ReportNodeOnlineUsers(onlineUserList *[]api.OnlineUser) error {
-	var path string
-	switch c.NodeType {
-	case "V2ray":
-		path = "/api/v1/server/Deepbwork/online"
-	case "Trojan":
-		path = "/api/v1/server/TrojanTidalab/online"
-	case "Shadowsocks":
-		path = "/api/v1/server/ShadowsocksTidalab/online"
-	}
-	
-	c.access.Lock()
-	defer c.access.Unlock()
-
-	reportOnline := make(map[int]int)
-	data := make([]OnlineUser, len(*onlineUserList))
-	for i, user := range *onlineUserList {
-		data[i] = OnlineUser{UID: user.UID, IP: user.IP}
-		if _, ok := reportOnline[user.UID]; ok {
-			reportOnline[user.UID]++
-		} else {
-			reportOnline[user.UID] = 1
-		}
-	}
-	c.LastReportOnline = reportOnline // Update LastReportOnline
-
-	postData := &PostData{Data: data}
-	res, err := c.client.R().
-		SetQueryParam("node_id", strconv.Itoa(c.NodeID)).
-		SetBody(postData).
-		SetResult(&Response{}).
-		ForceContentType("application/json").
-		Post(path)
-
-	_, err = c.parseResponse(res, path, err)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -446,7 +406,6 @@ func (c *APIClient) ParseV2rayNodeResponse(nodeInfoResponse *simplejson.Json) (*
 		Path:              path,
 		Host:              host,
 		EnableVless:       c.EnableVless,
-		VlessFlow:         c.VlessFlow,
 		ServiceName:       serviceName,
 		Header:            header,
 	}
